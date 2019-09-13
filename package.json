@@ -1,0 +1,103 @@
+{
+  "name": "graphql-demo-2",
+  "version": "0.0.0",
+  "description": "GraphQL Demo for Part 2 of my Sereis",
+  "main": "index.js",
+  "scripts": {
+    "dev": "gulp watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build"
+  },
+  "repository": "git@github.com:liaodrake/graphql-demo-2.git",
+  "author": "Christopher Vachon <code@christophervachon.com>",
+  "license": "MIT",
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-class-properties"
+    ]
+  },
+  "nodemonConfig": {
+    "verbose": true,
+    "ignore": [
+      "*.test.js",
+      "public/*",
+      "*.log",
+      ".git/*",
+      "node_modules/*",
+      "src/*",
+      "*.md",
+      "Dockerfile"
+    ],
+    "env": {
+      "NODE_ENV": "production",
+      "PORT": 5937
+    }
+  },
+  "browserslist": [
+    "last 2 versions"
+  ],
+  "dependencies": {
+    "@christophervachon/error-messages": "^0.0.0",
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-graphql": "^0.9.0",
+    "graphql": "^14.4.2",
+    "knex": "^0.19.1",
+    "mkdirp": "^0.5.1",
+    "pug": "^2.0.3",
+    "shortid": "^2.2.14",
+    "sqlite3": "^4.0.9"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "@fortawesome/fontawesome-free": "^5.10.1",
+    "@fortawesome/fontawesome-svg-core": "^1.2.21",
+    "@fortawesome/free-solid-svg-icons": "^5.10.1",
+    "@fortawesome/react-fontawesome": "^0.1.4",
+    "babelify": "^10.0.0",
+    "bootstrap": "^4.3.1",
+    "browser-sync": "^2.24.4",
+    "browserify": "^16.2.3",
+    "eslint": "^5.16.0",
+    "eslint-plugin-jest": "^21.17.0",
+    "eslint-plugin-react": "^7.9.1",
+    "exorcist": "^1.0.1",
+    "extend": "^3.0.2",
+    "gulp": "^4.0.0",
+    "gulp-autoprefixer": "^6.0.0",
+    "gulp-clean-css": "^4.0.0",
+    "gulp-env": "^0.4.0",
+    "gulp-google-webfonts": "^2.0.0",
+    "gulp-if-else": "^1.0.3",
+    "gulp-nodemon": "^2.4.2",
+    "gulp-plumber": "^1.2.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-size": "^3.0.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-terser": "^1.1.7",
+    "node-sass": "^4.9.0",
+    "nodemon": "^1.17.5",
+    "prop-types": "^15.6.1",
+    "pump": "^3.0.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.0",
+    "sass-module-importer": "^1.4.0",
+    "styled-components": "^4.3.2",
+    "toastr": "^2.1.4",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^3.11.0"
+  }
+}
