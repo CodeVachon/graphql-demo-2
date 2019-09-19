@@ -2,6 +2,7 @@
 const knex = require("./../knex");
 const extend = require("extend");
 const { now, shortId } = require("./utl");
+const { gql } = require("apollo-server-express");
 
 const labelModifyWhere = (queryBuilder, options) => {
     queryBuilder.where(options);
@@ -26,6 +27,38 @@ class Label {
             return Label.create(data);
         }
     } // close constructor
+
+    albums() {
+        const Album = require("./Album");
+
+        return Album.getList({
+            where: {
+                label_id: this.id
+            }
+        });
+    } // close albums
+
+    albumCount() {
+        const Album = require("./Album");
+
+        return Album.count({
+            where: {
+                label_id: this.id
+            }
+        });
+    } // close albumCount
+
+    artists() {
+        const Album = require("./Album");
+        const Artist = require("./Artist");
+
+        return Album.getList({
+            fields: "artist_id",
+            where: {
+                label_id: this.id
+            }
+        }).then(recordSet => Promise.all(recordSet.map(record => new Artist(record.artist_id))))
+    } // close artists
 
     edit(data) {
         const dataset = extend(false, {
@@ -72,6 +105,39 @@ class Label {
 
         return knex("Labels").insert(dataset).then(() => new Label(dataset.id));
     } // close create
+
+
+    static getGraphResolvers() {
+        return {
+            Query: {
+                label: (root, args) => new Label(args.id),
+                getLabels: (root, args) => this.getList(args),
+                countLabels: (root, args) => this.count(args)
+            }
+        };
+    } // close getGraphResolvers
+
+    static getGraphSchema() {
+        return gql`
+            type Label {
+                id: ID!
+                name: String
+                description: String
+                image: String
+                albums: [Album]
+                albumCount: Int
+                artists: [Artist]
+                created: DateTime
+                updated: DateTime
+            }
+
+            extend type Query {
+                label(id: ID!): Label
+                getLabels: [Label]
+                countLabels: Int
+            }
+        `;
+    } // close getGraphSchema
 } // close Label
 
 module.exports = Label;

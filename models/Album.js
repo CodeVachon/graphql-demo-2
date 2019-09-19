@@ -1,6 +1,7 @@
 const knex = require("./../knex");
 const extend = require("extend");
 const { now, shortId } = require("./utl");
+const { gql } = require("apollo-server-express");
 
 const albumModifyQuery = (queryBuilder, options) => {
     queryBuilder.where(options);
@@ -26,6 +27,16 @@ class Album {
         }
     } // close constructor
 
+    artist() {
+        const Artist = require("./Artist");
+
+        if (this.artist_id) {
+            return new Artist(this.artist_id);
+        } else {
+            return Promise.resolve(null);
+        }
+    } // close artist
+
     addArtist(data) {
         if (shortId.isValid(String(data))) {
             return this.edit({
@@ -43,6 +54,16 @@ class Album {
             artist_id: null
         });
     } // close removeArticle
+
+    label() {
+        const Label = require("./Label");
+
+        if (this.label_id) {
+            return new Label(this.label_id);
+        } else {
+            return Promise.resolve(null);
+        }
+    } // close label
 
     addLabel(data) {
         if (shortId.isValid(String(data))) {
@@ -84,29 +105,47 @@ class Album {
 
     static getList(options) {
         const settings = extend(false, {
+            fields: "*",
             orderBy: "title",
-            orderDir: "asc"
+            orderDir: "asc",
+            where: {},
         }, options);
 
-        return knex("Albums").select([
-            "Albums.id",
-            "Artists.name as artist",
-            "Labels.name as label"
-        ])
-        .leftJoin("Artists", "Albums.artist_id", "Artists.id")
-        .leftJoin("Labels", "Albums.label_id", "Labels.id")
-        .modify(albumModifyQuery, {
-            isDeleted: false
-        }).orderBy(settings.orderBy, settings.orderDir).then(recordSet => Promise.all(recordSet.map(record => new Album(record.id))));
+        return knex("Albums")
+            .distinct("*")
+            .modify(albumModifyQuery, extend(false, {
+                "Albums.isDeleted": false
+            }, settings.where))
+            .orderBy(settings.orderBy, settings.orderDir)
+            .then(recordSet => {
+                if (settings.fields === "*") {
+                    return Promise.all(recordSet.map(record => new Album(record.id)));
+                } else {
+                    return recordSet.map(record => {
+                        const newRecord = {};
+
+                        if (!Array.isArray(settings.fields)) {
+                            settings.fields = settings.fields.split(",").map(value => String(value).trim());
+                        }
+
+                        settings.fields.forEach(field => {
+                            newRecord[field] = record[field];
+                        });
+
+                        return newRecord;
+                    });
+                }
+            });
     } // close getList
 
     static count(options) {
         const settings = extend(false, {
+            where: {},
         }, options);
 
-        return knex("Albums").count("id as count").modify(albumModifyQuery, {
-            isDeleted: false
-        }).then(recordSet => recordSet[0].count);
+        return knex("Albums").count("id as count").modify(albumModifyQuery, extend(false, {
+            "Albums.isDeleted": false
+        }, settings.where)).then(recordSet => recordSet[0].count);
     } // close getList
 
     static create(data) {
@@ -122,6 +161,40 @@ class Album {
 
         return knex("Albums").insert(dataset).then(() => new Album(dataset.id));
     } // close create
+
+    static getGraphResolvers() {
+        return {
+            Query: {
+                album: (root, args) => new Album(args.id),
+                getAlbums: (root, args) => this.getList(args),
+                countAlbums: (root, args) => this.count(args)
+            }
+        };
+    } // close getGraphResolvers
+
+    static getGraphSchema() {
+        return gql`
+            type Album {
+                id: ID!
+                title: String
+                description: String
+                cover: String
+                releaseDate: DateTime
+                artist_id: ID
+                artist: Artist
+                label_id: ID
+                label: Label
+                created: DateTime
+                updated: DateTime
+            }
+
+            extend type Query {
+                album(id: ID!): Album
+                getAlbums: [Album]
+                countAlbums: Int
+            }
+        `;
+    } // close getGraphSchema
 } // close Album
 
 module.exports = Album;

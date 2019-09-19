@@ -2,6 +2,7 @@
 const knex = require("./../knex");
 const extend = require("extend");
 const { now, shortId } = require("./utl");
+const { gql } = require("apollo-server-express");
 
 const artistModifyWhere = (queryBuilder, options) => {
     queryBuilder.where(options);
@@ -26,6 +27,36 @@ class Artist {
             return Artist.create(data);
         }
     } // close constructor
+
+    albums() {
+        const Album = require("./Album");
+
+        return Album.getList({ where: {
+            artist_id: this.id
+        }});
+    } // close albums
+
+    albumCount() {
+        const Album = require("./Album");
+
+        return Album.count({
+            where: {
+                artist_id: this.id
+            }
+        });
+    } // close albumCount
+
+    labels() {
+        const Album = require("./Album");
+        const Label = require("./Label");
+
+        return Album.getList({
+            fields: "label_id",
+            where: {
+                artist_id: this.id
+            }
+        }).then(recordSet => Promise.all(recordSet.map(record => new Label(record.label_id))));
+    } // close labels
 
     edit(data) {
         const dataset = extend(false, {
@@ -72,6 +103,38 @@ class Artist {
 
         return knex("Artists").insert(dataset).then(() => new Artist(dataset.id));
     } // close create
+
+    static getGraphResolvers() {
+        return {
+            Query: {
+                artist: (root, args) => new Artist(args.id),
+                getArtists: (root, args) => this.getList(args),
+                countArtists: (root, args) => this.count(args)
+            }
+        };
+    } // close getGraphResolvers
+
+    static getGraphSchema() {
+        return gql`
+            type Artist {
+                id: ID!
+                name: String
+                description: String
+                image: String
+                albums: [Album]
+                albumCount: Int
+                labels: [Label]
+                created: DateTime
+                updated: DateTime
+            }
+
+            extend type Query {
+                artist(id: ID!): Artist
+                getArtists: [Artist]
+                countArtists: Int
+            }
+        `;
+    } // close getGraphSchema
 } // close Artist
 
 module.exports = Artist;
