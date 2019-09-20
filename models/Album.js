@@ -1,6 +1,6 @@
 const knex = require("./../knex");
 const extend = require("extend");
-const { now, shortId } = require("./utl");
+const { now, shortId, convertMillisToDurationString } = require("./utl");
 const { gql } = require("apollo-server-express");
 
 const albumModifyQuery = (queryBuilder, options) => {
@@ -82,6 +82,37 @@ class Album {
             label_id: null
         });
     } // close removeLabel
+
+    tracks() {
+        const Track = require("./Track");
+
+        return knex("AlbumTracks").select("id").where({
+            album_id: this.id,
+            isDeleted: 0
+        }).orderBy("trackNo").then(recordSet => Promise.all(recordSet.map(record => new Track(record.id))))
+    } // close tracks
+
+    addTrack(trackData) {
+        const Track = require("./Track");
+
+        new Track(trackData).then(thisTrack => thisTrack.edit({
+            album_id: this.id
+        })).then(() => this);
+    } // close addTrack
+
+    trackCount() {
+        return knex("AlbumTracks").count("id as count").where({
+            album_id: this.id,
+            isDeleted: 0
+        }).then(recordSet => recordSet[0].count);
+    } // close trackCount
+
+    duration() {
+        return knex("AlbumTracks").sum("duration as totalms").where({
+            album_id: this.id,
+            isDeleted: 0
+        }).then(recordSet => convertMillisToDurationString(recordSet[0].totalms));
+    }
 
     edit(data) {
         const dataset = extend(false, {
@@ -184,6 +215,9 @@ class Album {
                 artist: Artist
                 label_id: ID
                 label: Label
+                tracks: [Track]
+                trackCount: Int
+                duration: String
                 created: DateTime
                 updated: DateTime
             }
