@@ -55,11 +55,11 @@ class Album {
         }
     } // close addArtist
 
-    removeArticle() {
+    removeArtist() {
         return this.edit({
             artist_id: null
         });
-    } // close removeArticle
+    } // close removeArtist
 
     label() {
         const Label = require("./Label");
@@ -209,7 +209,11 @@ class Album {
             Mutation: {
                 createAlbum: (root, args) => new Album(args),
                 editAlbum: (root, args) => new Album(args.id).then(record => record.edit(args)),
-                removeAlbum: (root, args) => new Album(args.id).then(record => record.delete())
+                removeAlbum: (root, args) => new Album(args.id).then(record => record.delete()),
+                addArtistToAlbum: (root, args) => new Album(args.album_id).then(record => record.addArtist(args.artist_id)),
+                removeArtistFromAlbum: (root, args) => new Album(args.album_id).then(record => record.removeArtist()),
+                addLabelToAlbum: (root, args) => new Album(args.album_id).then(record => record.addLabel(args.label_id)),
+                removeLabelFromAlbum: (root, args) => new Album(args.album_id).then(record => record.removeLabel()),
             }
         };
     } // close getGraphResolvers
@@ -260,6 +264,20 @@ class Album {
                     label_id: ID
                 ): Album
                 removeAlbum(id: ID!): Boolean
+                addArtistToAlbum(
+                    artist_id: ID!
+                    album_id: ID!
+                ): Album
+                removeArtistFromAlbum(
+                    album_id: ID!
+                ): Album
+                addLabelToAlbum(
+                    label_id: ID!
+                    album_id: ID!
+                ): Album
+                removeLabelFromAlbum(
+                    album_id: ID!
+                ): Album
             }
         `;
     } // close getGraphSchema
