@@ -1,6 +1,6 @@
 const knex = require("./../knex");
 const extend = require("extend");
-const { now, shortId, convertMillisToDurationString } = require("./utl");
+const { now, nowDate, shortId, convertMillisToDurationString } = require("./utl");
 const { gql } = require("apollo-server-express");
 
 const albumModifyQuery = (queryBuilder, options) => {
@@ -18,6 +18,10 @@ class Album {
             }).then((record) => {
                 for (let [key, value] of Object.entries(record)) {
                     this[key] = value;
+                }
+
+                if (this.releaseDate) {
+                    this.releaseDate = nowDate(this.releaseDate);
                 }
 
                 return this;
@@ -120,7 +124,7 @@ class Album {
         }, data);
 
         if (data.releaseDate) {
-            data.releaseDate = now(data.releaseDate);
+            data.releaseDate = nowDate(data.releaseDate);
         }
 
         return knex("Albums").update(dataset).where({
@@ -187,7 +191,7 @@ class Album {
         }, data);
 
         if (data.releaseDate) {
-            data.releaseDate = now(data.releaseDate);
+            data.releaseDate = nowDate(data.releaseDate);
         }
 
         return knex("Albums").insert(dataset).then(() => new Album(dataset.id));
@@ -199,6 +203,11 @@ class Album {
                 album: (root, args) => new Album(args.id),
                 getAlbums: (root, args) => this.getList(args),
                 countAlbums: (root, args) => this.count(args)
+            },
+            Mutation: {
+                createAlbum: (root, args) => new Album(args),
+                editAlbum: (root, args) => new Album(args.id).then(record => record.edit(args)),
+                removeAlbum: (root, args) => new Album(args.id).then(record => record.delete()).then(() => true)
             }
         };
     } // close getGraphResolvers
@@ -209,8 +218,10 @@ class Album {
                 id: ID!
                 title: String
                 description: String
+                "The Album Cover Image"
                 cover: String
-                releaseDate: DateTime
+                "Release Date of the Album"
+                releaseDate: Date
                 artist_id: ID
                 artist: Artist
                 label_id: ID
@@ -226,6 +237,27 @@ class Album {
                 album(id: ID!): Album
                 getAlbums: [Album]
                 countAlbums: Int
+            }
+
+            extend type Mutation {
+                createAlbum(
+                    title: String!
+                    description: String
+                    cover: String
+                    releaseDate: Date
+                    artist_id: ID
+                    label_id: ID
+                ): Album
+                editAlbum(
+                    id: ID!
+                    title: String
+                    description: String
+                    cover: String
+                    releaseDate: Date
+                    artist_id: ID
+                    label_id: ID
+                ): Album
+                removeAlbum(id: ID!): Boolean
             }
         `;
     } // close getGraphSchema

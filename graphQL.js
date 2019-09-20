@@ -1,4 +1,4 @@
-const { GraphQLDateTime, GraphQLTime } = require("graphql-iso-date");
+const { GraphQLDateTime, GraphQLTime, GraphQLDate } = require("graphql-iso-date");
 const { gql, makeExecutableSchema } = require("apollo-server-express");
 const extend = require("extend");
 
@@ -6,12 +6,14 @@ const defaultSchema = gql`
     type Query { _empty: Boolean }
     type Mutation { _empty: Boolean }
     scalar DateTime
+    scalar Date
     scalar Time
 `;
 const defaultResolvers = () => ({
     Query: {},
     Mutation: {},
     DateTime: GraphQLDateTime,
+    Date: GraphQLDate,
     Time: GraphQLTime
 });
 

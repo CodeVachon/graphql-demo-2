@@ -3,6 +3,7 @@ shortId.characters("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
 
 const moment = require("moment-timezone");
 const now = (date) => { return moment(date).format("YYYY-MM-DDTHH:mm:ssZ"); }
+const nowDate = (date) => { return moment(date).format("YYYY-MM-DD"); }
 
 const convertDurationStringToMillis = (durationString) => {
     const duration = durationString.split(":").map(value => Number(value)).reverse();
@@ -43,6 +44,7 @@ const convertMillisToDurationString = (millis) => {
 
 module.exports = {
     now,
+    nowDate,
     shortId,
     convertDurationStringToMillis,
     convertMillisToDurationString
