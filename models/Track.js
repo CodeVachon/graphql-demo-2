@@ -17,11 +17,13 @@ class Track {
                 id: data,
                 isDeleted: false
             }).then((record) => {
-                for (let [key, value] of Object.entries(record)) {
-                    this[key] = value;
-                }
+                if (record) {
+                    for (let [key, value] of Object.entries(record)) {
+                        this[key] = value;
+                    }
 
-                this.duration = convertMillisToDurationString(this.duration);
+                    this.duration = convertMillisToDurationString(this.duration);
+                }
 
                 return this;
             });
@@ -47,7 +49,7 @@ class Track {
     delete() {
         return this.edit({
             isDeleted: true
-        });
+        }).then(() => Promise.resolve(true));
     } // close delete
 
     static getList(options) {
@@ -92,6 +94,11 @@ class Track {
                 track: (root, args) => new Track(args.id),
                 getTracks: (root, args) => this.getList(args),
                 countTracks: (root, args) => this.count(args)
+            },
+            Mutation: {
+                addTrack: (root, args) => new Track(args),
+                editTrack: (root, args) => new Track(args.id).then(thisTrack => thisTrack.edit(args)),
+                removeTrack: (root, args) => new Track(args.id).then(thisTrack => thisTrack.delete()),
             }
         };
     } // close getGraphResolvers
@@ -111,6 +118,23 @@ class Track {
                 track(id: ID!): Track
                 getTracks: [Track]
                 countTracks: Int
+            }
+
+            extend type Mutation {
+                addTrack(
+                    title: String!
+                    duration: String
+                    trackNo: Int
+                    album_id: ID!
+                ): Track
+                editTrack(
+                    id: ID!
+                    title: String
+                    duration: String
+                    trackNo: Int
+                    album_id: ID
+                ): Track
+                removeTrack(id: ID!): Boolean
             }
         `;
     } // close getGraphSchema

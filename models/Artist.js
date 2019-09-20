@@ -17,8 +17,10 @@ class Artist {
                 id: data,
                 isDeleted: false
             }).then((record) => {
-                for (let [key, value] of Object.entries(record)) {
-                    this[key] = value;
+                if (record) {
+                    for (let [key, value] of Object.entries(record)) {
+                        this[key] = value;
+                    }
                 }
 
                 return this;
@@ -110,6 +112,11 @@ class Artist {
                 artist: (root, args) => new Artist(args.id),
                 getArtists: (root, args) => this.getList(args),
                 countArtists: (root, args) => this.count(args)
+            },
+            Mutation: {
+                createArtist: (root, args) => new Artist(args),
+                editArtist: (root, args) => new Artist(args.id).then(thisArtist => thisArtist.edit(args)),
+                removeArtist: (root, args) => new Artist(args.id).then(thisArtist => thisArtist.delete()),
             }
         };
     } // close getGraphResolvers
@@ -132,6 +139,21 @@ class Artist {
                 artist(id: ID!): Artist
                 getArtists: [Artist]
                 countArtists: Int
+            }
+
+            extend type Mutation {
+                createArtist(
+                    name: String!
+                    description: String
+                    image: String
+                ): Artist
+                editArtist(
+                    id: ID!
+                    name: String
+                    description: String
+                    image: String
+                ): Artist
+                removeArtist(id: ID!): Boolean
             }
         `;
     } // close getGraphSchema

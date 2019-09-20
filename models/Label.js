@@ -17,8 +17,10 @@ class Label {
                 id: data,
                 isDeleted: false
             }).then((record) => {
-                for (let [key, value] of Object.entries(record)) {
-                    this[key] = value;
+                if (record) {
+                    for (let [key, value] of Object.entries(record)) {
+                        this[key] = value;
+                    }
                 }
 
                 return this;
@@ -113,6 +115,11 @@ class Label {
                 label: (root, args) => new Label(args.id),
                 getLabels: (root, args) => this.getList(args),
                 countLabels: (root, args) => this.count(args)
+            },
+            Mutation: {
+                createLabel: (root, args) => new Label(args),
+                editLabel: (root, args) => new Label(args.id).then(thisLabel => thisLabel.edit(args)),
+                removeLabel: (root, args) => new Label(args.id).then(thisLabel => thisLabel.delete()),
             }
         };
     } // close getGraphResolvers
@@ -135,6 +142,21 @@ class Label {
                 label(id: ID!): Label
                 getLabels: [Label]
                 countLabels: Int
+            }
+
+            extend type Mutation {
+                createLabel(
+                    name: String!
+                    description: String
+                    image: String
+                ): Label
+                editLabel(
+                    id: ID!
+                    name: String
+                    description: String
+                    image: String
+                ): Label
+                removeLabel(id: ID!): Boolean
             }
         `;
     } // close getGraphSchema

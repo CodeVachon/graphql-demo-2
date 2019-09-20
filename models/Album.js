@@ -16,12 +16,14 @@ class Album {
                 id: data,
                 isDeleted: false
             }).then((record) => {
-                for (let [key, value] of Object.entries(record)) {
-                    this[key] = value;
-                }
+                if (record) {
+                    for (let [key, value] of Object.entries(record)) {
+                        this[key] = value;
+                    }
 
-                if (this.releaseDate) {
-                    this.releaseDate = nowDate(this.releaseDate);
+                    if (this.releaseDate) {
+                        this.releaseDate = nowDate(this.releaseDate);
+                    }
                 }
 
                 return this;
@@ -135,7 +137,7 @@ class Album {
     delete() {
         return this.edit({
             isDeleted: true
-        });
+        }).then(() => Promise.resolve(true));
     } // close delete
 
     static getList(options) {
@@ -207,7 +209,7 @@ class Album {
             Mutation: {
                 createAlbum: (root, args) => new Album(args),
                 editAlbum: (root, args) => new Album(args.id).then(record => record.edit(args)),
-                removeAlbum: (root, args) => new Album(args.id).then(record => record.delete()).then(() => true)
+                removeAlbum: (root, args) => new Album(args.id).then(record => record.delete())
             }
         };
     } // close getGraphResolvers
