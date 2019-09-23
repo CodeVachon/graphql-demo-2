@@ -1,13 +1,28 @@
 const knex = require("./../knex");
 const extend = require("extend");
 const { now, nowDate, shortId, convertMillisToDurationString } = require("./utl");
-const { gql } = require("apollo-server-express");
+const { gql, UserInputError } = require("apollo-server-express");
 
 const albumModifyQuery = (queryBuilder, options) => {
     queryBuilder.where(options);
 
     return queryBuilder;
 }; // close albumModifyQuery
+
+ const checkForAlbumValidationErrors = (dataset) => {
+    if (dataset.hasOwnProperty("title")) {
+         if (dataset.title.length < 5) {
+             throw new UserInputError(`Title Too Short. Expected Min Length of 5, got ${dataset.title.length}`, {
+                 invalidArgs: "title"
+             });
+         }
+         if (dataset.title.length > 255) {
+             throw new UserInputError(`Title Too Long. Expected Max Length of 255, got ${dataset.title.length}`, {
+                 invalidArgs: "title"
+             });
+         }
+     }
+} // close checkForAlbumValidationErrors
 
 class Album {
     constructor(data) {
@@ -24,6 +39,8 @@ class Album {
                     if (this.releaseDate) {
                         this.releaseDate = nowDate(this.releaseDate);
                     }
+                } else {
+                    throw new UserInputError("Album Not Found");
                 }
 
                 return this;
@@ -123,7 +140,9 @@ class Album {
     edit(data) {
         const dataset = extend(false, {
             updated: now()
-        }, data);
+        }, data.album);
+
+        checkForAlbumValidationErrors(data.album);
 
         if (data.releaseDate) {
             data.releaseDate = nowDate(data.releaseDate);
@@ -188,9 +207,12 @@ class Album {
     static create(data) {
         const dataset = extend(false, {
             id: shortId.generate(),
+            title: "",
             created: now(),
             updated: now()
-        }, data);
+        }, data.album);
+
+        checkForAlbumValidationErrors(data.album);
 
         if (data.releaseDate) {
             data.releaseDate = nowDate(data.releaseDate);
@@ -245,23 +267,22 @@ class Album {
                 countAlbums: Int
             }
 
+            input AlbumInput {
+                title: String
+                description: String
+                cover: String
+                releaseDate: Date
+                artist_id: ID
+                label_id: ID
+            }
+
             extend type Mutation {
                 createAlbum(
-                    title: String!
-                    description: String
-                    cover: String
-                    releaseDate: Date
-                    artist_id: ID
-                    label_id: ID
+                    album: AlbumInput!
                 ): Album
                 editAlbum(
                     id: ID!
-                    title: String
-                    description: String
-                    cover: String
-                    releaseDate: Date
-                    artist_id: ID
-                    label_id: ID
+                    album: AlbumInput!
                 ): Album
                 removeAlbum(id: ID!): Boolean
                 addArtistToAlbum(

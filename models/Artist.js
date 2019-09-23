@@ -21,6 +21,8 @@ class Artist {
                     for (let [key, value] of Object.entries(record)) {
                         this[key] = value;
                     }
+                } else {
+                    throw new UserInputError("Artist Not Found");
                 }
 
                 return this;
@@ -63,7 +65,7 @@ class Artist {
     edit(data) {
         const dataset = extend(false, {
             updated: now()
-        }, data);
+        }, data.artist);
 
         return knex("Artists").update(dataset).where({
             id: this.id
@@ -101,7 +103,7 @@ class Artist {
             id: shortId.generate(),
             created: now(),
             updated: now()
-        }, data);
+        }, data.artist);
 
         return knex("Artists").insert(dataset).then(() => new Artist(dataset.id));
     } // close create
@@ -141,17 +143,19 @@ class Artist {
                 countArtists: Int
             }
 
+            input ArtistInput {
+                name: String
+                description: String
+                image: String
+            }
+
             extend type Mutation {
                 createArtist(
-                    name: String!
-                    description: String
-                    image: String
+                    artist: ArtistInput!
                 ): Artist
                 editArtist(
                     id: ID!
-                    name: String
-                    description: String
-                    image: String
+                    artist: ArtistInput!
                 ): Artist
                 removeArtist(id: ID!): Boolean
             }

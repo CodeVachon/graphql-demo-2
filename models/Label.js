@@ -21,6 +21,8 @@ class Label {
                     for (let [key, value] of Object.entries(record)) {
                         this[key] = value;
                     }
+                } else {
+                    throw new UserInputError("Label Not Found");
                 }
 
                 return this;
@@ -65,7 +67,7 @@ class Label {
     edit(data) {
         const dataset = extend(false, {
             updated: now()
-        }, data);
+        }, data.label);
 
         return knex("Labels").update(dataset).where({
             id: this.id
@@ -103,7 +105,7 @@ class Label {
             id: shortId.generate(),
             created: now(),
             updated: now()
-        }, data);
+        }, data.label);
 
         return knex("Labels").insert(dataset).then(() => new Label(dataset.id));
     } // close create
@@ -144,17 +146,19 @@ class Label {
                 countLabels: Int
             }
 
+            input LabelInput {
+                name: String
+                description: String
+                image: String
+            }
+
             extend type Mutation {
                 createLabel(
-                    name: String!
-                    description: String
-                    image: String
+                    label: LabelInput!
                 ): Label
                 editLabel(
                     id: ID!
-                    name: String
-                    description: String
-                    image: String
+                    label: LabelInput!
                 ): Label
                 removeLabel(id: ID!): Boolean
             }

@@ -23,6 +23,8 @@ class Track {
                     }
 
                     this.duration = convertMillisToDurationString(this.duration);
+                } else {
+                    throw new UserInputError("Track Not Found");
                 }
 
                 return this;
@@ -35,7 +37,7 @@ class Track {
     edit(data) {
         const dataset = extend(false, {
             updated: now()
-        }, data);
+        }, data.track);
 
         if (dataset.duration) {
             dataset.duration = convertDurationStringToMillis(dataset.duration);
@@ -80,7 +82,7 @@ class Track {
             duration: "0",
             created: now(),
             updated: now()
-        }, data);
+        }, data.track);
 
         dataset.duration = convertDurationStringToMillis(dataset.duration);
 
@@ -120,19 +122,20 @@ class Track {
                 countTracks: Int
             }
 
+            input TrackInput {
+                title: String
+                duration: String
+                trackNo: Int
+                album_id: ID
+            }
+
             extend type Mutation {
                 addTrack(
-                    title: String!
-                    duration: String
-                    trackNo: Int
-                    album_id: ID!
+                    track: TrackInput!
                 ): Track
                 editTrack(
                     id: ID!
-                    title: String
-                    duration: String
-                    trackNo: Int
-                    album_id: ID
+                    track: TrackInput!
                 ): Track
                 removeTrack(id: ID!): Boolean
             }
